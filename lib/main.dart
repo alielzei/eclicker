@@ -37,11 +37,12 @@ class PollTileListViewState extends State<PollTileListView> {
   }
 
   Future<void> fetchNewPollTitles(){
+    const userId = 'QaPTrvLIWTa2cogzVKQB';
     // refreshing should only load new titles
     // scrolling down is another thing...
     // lookup pagination or something
     return Firestore.instance
-      .collection('poll')
+      .collection('users/$userId/feed')
       .getDocuments()
       .then((pollsQuerySnapshot){
         setState((){
@@ -138,9 +139,6 @@ class PollTileListViewState extends State<PollTileListView> {
       child: Text('$room',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          // fontSize: 12
-        )
       ),
     );
   }
