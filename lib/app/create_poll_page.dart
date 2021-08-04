@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eclicker_flutter/services/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,11 +18,15 @@ class _CreatePollPageState extends State<CreatePollPage> {
 
   @override
   Widget build(BuildContext context) {
-    return _loading
-      ? Center(
-        child: CircularProgressIndicator()
-      )
-      : ListView(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Create'),
+      ),
+      body: _loading
+        ? Center(
+          child: CircularProgressIndicator()
+        )
+        : ListView(
         children: <Widget>[
           _buildTitle(),
           ..._buildOptions(),
@@ -32,26 +35,8 @@ class _CreatePollPageState extends State<CreatePollPage> {
             height: 100,
           )
         ],
-      );
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: Text('create'),
-    //   ),
-    //   body: _loading
-    //     ? Center(
-    //       child: CircularProgressIndicator()
-    //     )
-    //     : ListView(
-    //     children: <Widget>[
-    //       _buildTitle(),
-    //       ..._buildOptions(),
-    //       _buildActionButtons(),
-    //       SizedBox(
-    //         height: 100,
-    //       )
-    //     ],
-    //   )
-    // );
+      )
+    );
   }
 
   Widget _buildTitle(){
@@ -126,37 +111,25 @@ class _CreatePollPageState extends State<CreatePollPage> {
         });
       },
       icon: Icon(Icons.add),
-      label: Text('Add option',
-        style: TextStyle(
-            fontWeight: FontWeight.bold
-        )
-      ),
+      label: Text('Add option'),
     );
   }
 
   Widget _buildPostButton(BuildContext context){
     return RaisedButton(
       onPressed: (){
-        setState((){
-          _loading = true;
-        });
-        final firestore = Provider.of<FirestoreService>(context, listen: false);
-        firestore.postPoll(
+        setState(() => _loading = true);
+
+        final db = Provider.of<FirestoreService>(context, listen: false);
+
+        final pollPost = PollPost(
           title: _titleController.text,
           options: List<String>.from(_optionsControllers.map((c) => c.text)),
-          // options: [],
-        )
-        .whenComplete((){
-          setState((){
-            _loading = false;
-          });
-        });
+        );
+
+        db.postPoll(pollPost).then((v) => Navigator.pop(context));
       },
-      highlightElevation: 0,
-      elevation: 0,
-      child: Text('POST', style: TextStyle(
-        fontWeight: FontWeight.bold
-      )),
+      child: Text('POST'),
     );
   }
 

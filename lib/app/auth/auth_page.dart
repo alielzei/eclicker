@@ -10,25 +10,24 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> {
 
-  bool _signInView = true;
+  bool _signUpView = false;
 
   void _toggleView(){
     setState(() {
-      _signInView = !_signInView;
+      _signUpView = !_signUpView;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Sign ${!_signInView ? 'in' : 'up'}'),),
-      body: 
-      Column(
+      appBar: AppBar(title: Text('Sign ${!_signUpView ? 'in' : 'up'}'),),
+      body: Column(
         children: [
           Expanded(child: Center(child: Text('some details'))),
           AnimatedSwitcher(
             duration: Duration(milliseconds: 200),
-            child: _signInView ? SignUpForm() : SignInForm(),
+            child: _signUpView ? SignUpForm() : SignInForm(),
             transitionBuilder: (child, animation) => SlideTransition(
               child: child,
               position: Tween(
@@ -51,7 +50,7 @@ class _AuthPageState extends State<AuthPage> {
         onPressed: (){
           _toggleView();
         },
-        child: Text('Sign ${_signInView ? 'in' : 'up'} instead'),
+        child: Text('Sign ${_signUpView ? 'in' : 'up'} instead'),
       ),
     );
   }

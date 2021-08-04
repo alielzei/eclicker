@@ -1,36 +1,17 @@
-import 'package:eclicker_flutter/services/auth_service.dart';
 import 'package:eclicker_flutter/services/firestore_service.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 
-class FeedPage extends StatelessWidget {
+import 'main_drawer.dart';
+
+class HomePage extends StatefulWidget {
+
   @override
-  Widget build(BuildContext context) {
-    return Navigator(
-      onGenerateRoute: (RouteSettings settings){
-        return MaterialPageRoute(
-          builder: (BuildContext context){
-            return PollTileListView();
-          }
-        );
-      },
-    );
-  }
+  _HomePageState createState() => _HomePageState();
 }
 
-class PollTileListView extends StatefulWidget {
-  @override
-  PollTileListViewState createState() => PollTileListViewState();
-}
-
-// class PollTileListViewState extends State<PollTileListView> with AutomaticKeepAliveClientMixin {
-class PollTileListViewState extends State<PollTileListView>{
-
-  // @override
-  // bool get wantKeepAlive => true;
-
-  List<DocumentSnapshot> pollDocumentSnapshotList;
+class _HomePageState extends State<HomePage> {
+  List<FeedPost> feedPostsxyz = [];
 
   @override
   void initState() {
@@ -38,29 +19,12 @@ class PollTileListViewState extends State<PollTileListView>{
     fetchNewPollTitles();
   }
 
-  Future<void> fetchNewPollTitles(){
-    print('fetching feed');
+  Future<void> fetchNewPollTitles() async {
     FirestoreService firestoreService = Provider.of<FirestoreService>(context, listen: false);
-
-    // refreshing should only load new titles
-    // scrolling down is another thing...
-    // lookup pagination or something
-
-    return firestoreService
-      .getUserFeed()
-      .then((pollsQuerySnapshot){
-        setState((){
-          pollDocumentSnapshotList = pollsQuerySnapshot.documents;
-        });
-      });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(title: Text('feed')),
-      body: _buildTiles()
-    ); 
+    final posts = await firestoreService.getUserFeed();
+    setState(() {
+      feedPostsxyz = posts;
+    });
   }
 
   void _onTileTap(documentId){
@@ -77,17 +41,28 @@ class PollTileListViewState extends State<PollTileListView>{
     ));
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Feed'),
+      ),
+      drawer: MainDrawer(),
+      body: _buildTiles()
+    );
+  }
+
   Widget _buildTiles(){
-    return pollDocumentSnapshotList == null 
+    return feedPostsxyz == null 
     ? Center(
       child: CircularProgressIndicator()
     )
     : RefreshIndicator(
       onRefresh: fetchNewPollTitles,
       child: ListView.separated(
-        itemCount: pollDocumentSnapshotList.length,
+        itemCount: feedPostsxyz.length,
         itemBuilder: (context, index){
-          return _buildTile(pollDocumentSnapshotList[index]);
+          return _buildTile(feedPostsxyz[index]);
         },
         separatorBuilder: (context, index){
           return Padding(
@@ -99,11 +74,11 @@ class PollTileListViewState extends State<PollTileListView>{
     );
   }
 
-  Widget _buildTile(DocumentSnapshot pollDocumentSnapshot){
+  Widget _buildTile(FeedPost feedPost){
     return Column(
       children: <Widget>[
         InkWell(
-          onTap: () => _onTileTap(pollDocumentSnapshot.documentID),
+          onTap: () => _onTileTap(feedPost.docId),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
             child: Row(
@@ -114,8 +89,8 @@ class PollTileListViewState extends State<PollTileListView>{
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      _buildTitle(pollDocumentSnapshot['title']),
-                      _buildRoom(pollDocumentSnapshot['room']),
+                      _buildTitle(feedPost.title),
+                      _buildRoom(feedPost.room),
                     ],
                   ),
                 )
@@ -134,7 +109,7 @@ class PollTileListViewState extends State<PollTileListView>{
       child: CircleAvatar(),
     );
   }
-  
+
   Widget _buildTitle(title){
     return Text('$title', 
       maxLines: 5,
@@ -156,5 +131,4 @@ class PollTileListViewState extends State<PollTileListView>{
       ),
     );
   }
-
 }
